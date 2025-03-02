@@ -1,16 +1,20 @@
 //packages/frontend/components/GameLoader.tsx
-import React, { Suspense } from 'react';
+import React, { useState, useEffect, JSX } from 'react';
 
-const loadGame = (gameName: string) =>
-  React.lazy(() => import(gameName).then((module) => ({ default: module.default.render })));
+interface GameLoaderProps {
+  gameName: string;
+}
 
-const GameLoader = ({ gameName }: { gameName: string }) => {
-  const GameComponent = loadGame(gameName);
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <GameComponent />
-    </Suspense>
-  );
-};
+export default function GameLoader({ gameName }: GameLoaderProps) {
+  const [plugin, setPlugin] = useState<{ render: () => JSX.Element } | null>(null);
 
-export default GameLoader;
+  useEffect(() => {
+    // Use dynamic import with the correct path format
+    import(`plugins/games/${gameName}/index.tsx`)
+      .then(mod => setPlugin(mod.default))
+      .catch(err => console.error("Error loading game plugin:", err));
+  }, [gameName]);
+
+  if (!plugin) return <div>Loading game...</div>;
+  return plugin.render();
+}

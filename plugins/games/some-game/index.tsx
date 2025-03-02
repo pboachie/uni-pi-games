@@ -1,4 +1,10 @@
 // plugins/games/some-game/index.tsx
+import { GamePlugin } from 'shared/src/types';
+import SomeGameComponent from './SomeGameComponent';
 import React from 'react';
-const SomeGame = () => <div>Some Game Component</div>;
-export default SomeGame;
+
+const gamePlugin: GamePlugin = {
+  name: 'Some Game',
+  render: () => <SomeGameComponent />,
+};
+export default gamePlugin;

@@ -1,6 +1,6 @@
 // packages/backend/src/index.ts
 import express, { Request, Response } from "express";
-import { User } from "shared";
+import { User } from "shared/src/types";
 
 const app = express();
 

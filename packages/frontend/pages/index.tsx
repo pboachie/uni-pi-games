@@ -1,7 +1,7 @@
 // packages/frontend/pages/index.tsx
 import React, { useState, useEffect } from 'react';
 import GameLoader from '../components/GameLoader';
-import { User } from 'shared';
+import { User } from 'shared/src/types';
 
 const availableGames = ['some-game'];
 
