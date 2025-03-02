@@ -1,0 +1,10 @@
+{
+  "name": "uni-pi-games",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "plugins/games/*"
+  ],
+  "license": "UNLICENSED"
+}

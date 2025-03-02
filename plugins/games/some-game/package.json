@@ -1,0 +1,6 @@
+{
+  "name": "some-game",
+  "version": "1.0.0",
+  "main": "index.tsx",
+  "license": "UNLICENSED"
+}
