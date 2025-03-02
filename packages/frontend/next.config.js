@@ -7,17 +7,28 @@ const nextConfig = {
     // Configure webpack to handle tsx files in plugins directory
     config.resolve.alias = {
       ...config.resolve.alias,
-      // Add an alias for the plugins directory
+      // Add aliases for directories
       'plugins': path.resolve(__dirname, '../../plugins'),
+      'shared': path.resolve(__dirname, '../shared'),
     };
 
-    // Make webpack handle tsx files outside of the Next.js directory
+    // Configure module resolution for external directories
     config.module.rules.push({
       test: /\.(tsx|ts|js|jsx)$/,
       include: [
         path.resolve(__dirname, '../../plugins'),
       ],
-      use: 'babel-loader',
+      exclude: /node_modules/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: [
+            'next/babel',
+            '@babel/preset-typescript',
+            '@babel/preset-react',
+          ],
+        }
+      },
     });
 
     return config;
