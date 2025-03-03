@@ -29,18 +29,6 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
     };
   }, [globalCoins]);
 
-  // Helper: simple circle collision check
-  const checkCollision = (other: THREE.Sprite) => {
-    if (!spriteRef.current || !other) return;
-    const posA = spriteRef.current.position;
-    const posB = other.position;
-    const dx = posA.x - posB.x;
-    const dy = posA.y - posB.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const radius = scale[0] / 2; // use scale as proxy for size
-    return distance < radius * 2;
-  };
-
   // Set initial position
   React.useEffect(() => {
     if (spriteRef.current) {
@@ -49,37 +37,74 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
   }, [initialPosition]);
 
   useFrame((_, delta) => {
-    if (spriteRef.current) {
-      const sprite = spriteRef.current;
-      sprite.position.x += vx.current * delta * 60;
-      sprite.position.y += vy.current * delta * 60;
-      // Bounce when hitting viewport boundaries
-      if (sprite.position.x < left || sprite.position.x > right) {
+    const s = spriteRef.current;
+    if (!s) return;
+    const radius = scale[0] / 2;
+    const margin = radius; // enforce a margin equal to coin radius
+    // Clamp delta to avoid teleportation
+    const effectiveDelta = Math.min(delta, 0.05);
+
+    // Updated multiplier from 60 to 80 for faster movement
+    s.position.x += vx.current * effectiveDelta * 80;
+    s.position.y += vy.current * effectiveDelta * 80;
+
+    // Bounce off walls (with margin)
+    if (s.position.x < left + margin) {
+      s.position.x = left + margin;
+      vx.current = Math.abs(vx.current);
+    }
+    if (s.position.x > right - margin) {
+      s.position.x = right - margin;
+      vx.current = -Math.abs(vx.current);
+    }
+    if (s.position.y < bottom + margin) {
+      s.position.y = bottom + margin;
+      vy.current = Math.abs(vy.current);
+    }
+    if (s.position.y > top - margin) {
+      s.position.y = top - margin;
+      vy.current = -Math.abs(vy.current);
+    }
+
+    // Check coin-to-coin collisions with separation
+    globalCoins.current.forEach(other => {
+      if (other === s) return;
+      const dx = s.position.x - other.position.x;
+      const dy = s.position.y - other.position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const minDist = radius * 2; // desired separation distance
+      if (distance < minDist && distance > 0) {
+        const overlap = (minDist - distance) / 2;
+        const nx = dx / distance;
+        const ny = dy / distance;
+        s.position.x += nx * overlap;
+        s.position.y += ny * overlap;
         vx.current *= -1;
-      }
-      if (sprite.position.y < bottom || sprite.position.y > top) {
         vy.current *= -1;
       }
-      // Check collision with other coins
-      globalCoins.current.forEach(other => {
-        if (other !== spriteRef.current && checkCollision(other)) {
-          vx.current *= -1;
-          vy.current *= -1;
-        }
-      });
-      // Check collision with a hard-coded "button" region
-      // (Assume button area: centered at bottom of screen)
-      const btnRect = {
-        left: -50,
-        right: 50,
-        top: -viewport.height / 2 + 150,
-        bottom: -viewport.height / 2 + 50,
-      };
-      const { x, y } = sprite.position;
-      if (x > btnRect.left && x < btnRect.right && y > btnRect.bottom && y < btnRect.top) {
-        vx.current *= -1;
-        vy.current *= -1;
-      }
+    });
+
+    // Check collision with a hard-coded "button" region and separate
+    const btnRect = {
+      left: -50,
+      right: 50,
+      top: -viewport.height / 2 + 150,
+      bottom: -viewport.height / 2 + 50,
+    };
+    const { x, y } = s.position;
+    if (x > btnRect.left && x < btnRect.right && y > btnRect.bottom && y < btnRect.top) {
+      // Push the coin out toward the closest edge of the button region
+      const distLeft = Math.abs(x - btnRect.left);
+      const distRight = Math.abs(btnRect.right - x);
+      const distBottom = Math.abs(y - btnRect.bottom);
+      const distTop = Math.abs(btnRect.top - y);
+      const minWall = Math.min(distLeft, distRight, distBottom, distTop);
+      if (minWall === distLeft) s.position.x = btnRect.left - margin;
+      else if (minWall === distRight) s.position.x = btnRect.right + margin;
+      else if (minWall === distBottom) s.position.y = btnRect.bottom - margin;
+      else if (minWall === distTop) s.position.y = btnRect.top + margin;
+      vx.current *= -1;
+      vy.current *= -1;
     }
   });
 
@@ -93,9 +118,14 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
 
 const Coins: React.FC = () => {
   const { viewport } = useThree();
+  // Adjust coin count based on device screen size
+  const isMobile = viewport.width < 768;
+  const numCoins = isMobile
+    ? Math.floor(Math.random() * 3) + 3 // 3 to 5 on smaller screens
+    : Math.floor(Math.random() * 11) + 8; // 8 to 18 on larger screens
+
   // Shared ref for all coin sprites
   const coinRefs = React.useRef<THREE.Sprite[]>([]);
-  const numCoins = Math.floor(Math.random() * 11) + 5; // between 5 and 15
   return (
     <>
       {Array.from({ length: numCoins }, (_, i) => {

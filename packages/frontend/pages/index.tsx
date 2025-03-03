@@ -38,20 +38,22 @@ export default function Home() {
       <div className="relative min-h-screen overflow-hidden bg-transparent">
         {/* Background Animation with PI Coins */}
         <BackgroundAnimation />
-        {/* Logo at the Top */}
-        <div className="absolute top-0 left-0 right-0 flex justify-center pt-8">
-          <div className="text-white text-2xl sm:text-4xl font-sans font-bold">
-            Uni Pi Games
+        {/* Logo at the Top with increased z-index and dynamic responsive title */}
+        <div className="absolute top-0 left-0 right-0 flex justify-center pt-8 z-20">
+          <div className="text-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-wider">
+            UNI PI GAMES
           </div>
         </div>
-        {/* Login Button */}
-        <div className="flex items-center justify-center h-screen">
-          <button
-            onClick={handleLogin}
-            className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md mt-20"
-          >
-            Login with Pi
-          </button>
+        {/* Login Button*/}
+        <div className="flex flex-col items-center justify-center h-screen">
+          <div className="mt-[50vh] sm:mt-[50vh] md:mt-[50vh]">
+            <button
+              onClick={handleLogin}
+              className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md"
+            >
+              Login with Pi
+            </button>
+          </div>
         </div>
       </div>
     );
