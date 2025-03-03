@@ -1,3 +1,5 @@
+/*packages/frontend/styles/custom-responsive.css*/
+
 @media (max-width: 640px) {
   /* Mobile-specific styles */
   .font-mobile {

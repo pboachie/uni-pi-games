@@ -20,16 +20,24 @@ export default function Home() {
   };
 
   if (!loggedIn) {
-    // Welcome page with login button; full-page background animation; no scrolling.
     return (
-      <div className="relative min-h-screen overflow-hidden flex items-center justify-center bg-gray-100 pt-24">
+      <div className="relative min-h-screen overflow-hidden bg-transparent">
         <BackgroundAnimation />
-        <button
-          onClick={handleLogin}
-          className="z-10 bg-orange-500 text-white px-10 py-5 rounded-lg text-3xl font-bold hover:bg-orange-600"
-        >
-          Login with Pi
-        </button>
+        {/* Logo at the top */}
+        <div className="absolute top-0 left-0 right-0 flex justify-center pt-8">
+          <div className="text-white text-2xl sm:text-4xl font-sans font-bold">
+            Uni Pi Games
+          </div>
+        </div>
+        {/* Centered Login Button */}
+        <div className="flex items-center justify-center h-screen">
+          <button
+            onClick={handleLogin}
+            className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md"
+          >
+            Login with Pi
+          </button>
+        </div>
       </div>
     );
   }

@@ -1,3 +1,5 @@
+//packages/frontend/pages/_app.tsx
+
 import React from 'react';
 import '../styles/globals.css';
 import '../styles/custom-responsive.css';

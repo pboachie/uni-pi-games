@@ -1,3 +1,4 @@
+//packages/frontend/components/PiWalletModal.tsx
 import React from 'react';
 
 interface PiWalletModalProps {
