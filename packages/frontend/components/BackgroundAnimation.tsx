@@ -165,7 +165,7 @@ const BackgroundAnimation: React.FC = () => {
     <Canvas
       orthographic
       camera={{ near: 0.1, far: 1000, position: [0, 0, 100] }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
+      style={{ pointerEvents: 'none', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
       onCreated={(state) => state.gl.setClearColor(0xffffff, 0)}
     >
       <CameraUpdater />
