@@ -9,6 +9,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "express": "^4.21.2",
+    "ioredis": "^5.5.0",
     "next-transpile-modules": "^10.0.1",
     "shared": "file:../../packages/shared"
   },
