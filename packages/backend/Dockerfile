@@ -1,16 +1,23 @@
-FROM node:18-alpine
+FROM node:18-buster-slim
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package.json package-lock.json* ./
-RUN npm install
+# Copy monorepo root files
+COPY package.json yarn.lock ./
 
-# Copy the rest of the backend code
-COPY . .
+# Copy the packages folder (and other folders if needed)
+COPY packages ./packages
+COPY plugins ./plugins
 
-# Uncomment the next line if your backend has a build step
-# RUN npm run build
+# Set working directory to backend package
+WORKDIR /app/packages/backend
+
+# Use "--ignore-optional" to skip swc-linux optional dependency
+RUN yarn install --ignore-optional
+RUN yarn build
+
+# remove frontend source code
+RUN rm -rf /app/packages/frontend
 
 EXPOSE 5000
-CMD ["npm", "start"]
+CMD ["yarn", "start"]

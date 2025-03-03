@@ -1,3 +1,4 @@
+//packages/frontend/components/BackgroundAnimation.tsx
 import React, { useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -17,7 +18,7 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
   const top = viewport.height / 2;
   const vx = React.useRef(Math.random() * 0.3 - 0.15);
   const vy = React.useRef(Math.random() * 0.3 - 0.15);
-  const texture = useLoader(THREE.TextureLoader, '/pi-symbol.png');
+  const texture = useLoader(THREE.TextureLoader, '/pi-symbol2.png');
 
   // Register sprite in globalCoins
   React.useEffect(() => {
@@ -44,7 +45,6 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
     // Clamp delta to avoid teleportation
     const effectiveDelta = Math.min(delta, 0.05);
 
-    // Updated multiplier from 60 to 80 for faster movement
     s.position.x += vx.current * effectiveDelta * 80;
     s.position.y += vy.current * effectiveDelta * 80;
 

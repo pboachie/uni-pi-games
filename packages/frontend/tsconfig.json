@@ -13,7 +13,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",  // changed from "bundler" to "node"
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -21,14 +21,11 @@
     "baseUrl": ".",
     "paths": {
       "plugins/*": ["../../plugins/*"],
-      "shared/*": ["../shared/*"],
-      "three": ["../../node_modules/three"],
-      "three/*": ["../../node_modules/three/*"]
+      "shared/*": ["../shared/*"]
     },
     "typeRoots": [
       "../../node_modules/@types",
-      "./node_modules/@types",
-      "../../node_modules/three/src/Three.d.ts"
+      "./node_modules/@types"
     ]
   },
   "include": [
