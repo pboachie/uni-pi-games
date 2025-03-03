@@ -118,10 +118,17 @@ const PiSprite: React.FC<PiSpriteProps> = ({ initialPosition, scale, globalCoins
 
 const Coins: React.FC = () => {
   const { viewport } = useThree();
+  // Define the button region boundaries
+  const btnRect = {
+    left: -50,
+    right: 50,
+    top: -viewport.height / 2 + 150,
+    bottom: -viewport.height / 2 + 50,
+  };
   // Adjust coin count based on device screen size
   const isMobile = viewport.width < 768;
   const numCoins = isMobile
-    ? Math.floor(Math.random() * 3) + 3 // 3 to 5 on smaller screens
+    ? Math.floor(Math.random() * 3) + 3  // 3 to 5 on smaller screens
     : Math.floor(Math.random() * 11) + 8; // 8 to 18 on larger screens
 
   // Shared ref for all coin sprites
@@ -130,9 +137,13 @@ const Coins: React.FC = () => {
     <>
       {Array.from({ length: numCoins }, (_, i) => {
         const scaleVal = Math.random() * 40 + 30; // 30 to 70 pixels
-        // Random x,y within the viewport bounds
-        const x = Math.random() * viewport.width - viewport.width / 2;
-        const y = Math.random() * viewport.height - viewport.height / 2;
+        let x, y;
+        // Ensure initial position is outside the button region
+        do {
+          x = Math.random() * viewport.width - viewport.width / 2;
+          y = Math.random() * viewport.height - viewport.height / 2;
+        } while (x > btnRect.left && x < btnRect.right && y > btnRect.bottom && y < btnRect.top);
+
         return (
           <PiSprite
             key={i}
