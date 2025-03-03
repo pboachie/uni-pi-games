@@ -22,18 +22,19 @@ export default function Home() {
   if (!loggedIn) {
     return (
       <div className="relative min-h-screen overflow-hidden bg-transparent">
+        {/* Background Animation with PI Coins */}
         <BackgroundAnimation />
-        {/* Logo at the top */}
+        {/* Logo at the Top */}
         <div className="absolute top-0 left-0 right-0 flex justify-center pt-8">
           <div className="text-white text-2xl sm:text-4xl font-sans font-bold">
             Uni Pi Games
           </div>
         </div>
-        {/* Centered Login Button */}
+        {/* Login Button */}
         <div className="flex items-center justify-center h-screen">
           <button
             onClick={handleLogin}
-            className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md"
+            className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md mt-20"
           >
             Login with Pi
           </button>
@@ -45,8 +46,8 @@ export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <BackgroundAnimation />
-      <Header setIsSidebarOpen={setIsSidebarOpen} openWalletModal={() => setIsWalletModalOpen(true)} />
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Header setIsSidebarOpen={setIsSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} availableGames={availableGames}/>
       <PiWalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
       <main className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
         {availableGames.map((game) => (
