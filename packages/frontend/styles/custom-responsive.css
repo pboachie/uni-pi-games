@@ -1,0 +1,16 @@
+@media (max-width: 640px) {
+  /* Mobile-specific styles */
+  .font-mobile {
+    font-size: 0.875rem;
+  }
+  .sidebar-collapsed {
+    width: 200px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet-specific styles */
+  .font-tablet {
+    font-size: 1rem;
+  }
+}

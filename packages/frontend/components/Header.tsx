@@ -1,12 +1,12 @@
-//packages/frontend/components/Header.tsx
 import React from 'react';
 import { Menu } from '@headlessui/react';
 
 interface HeaderProps {
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  openWalletModal: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
+const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen, openWalletModal }) => {
   return (
     <nav className="bg-orange-500 p-4 flex justify-between items-center">
       {/* Logo */}
@@ -47,9 +47,21 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
             />
           </Menu.Button>
           <Menu.Items className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1">
-            {['Deposit', 'Withdraw', 'Settings', 'Sign Out'].map((item) => (
+            <Menu.Item>
+              {({ active }) => (
+                <button
+                  onClick={openWalletModal}
+                  className={`${
+                    active ? 'bg-orange-500 text-white' : 'text-gray-900'
+                  } block w-full text-left px-4 py-2 text-sm`}
+                >
+                  Deposit
+                </button>
+              )}
+            </Menu.Item>
+            {['Withdraw', 'Settings', 'Sign Out'].map((item) => (
               <Menu.Item key={item}>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <button
                     className={`${
                       active ? 'bg-orange-500 text-white' : 'text-gray-900'

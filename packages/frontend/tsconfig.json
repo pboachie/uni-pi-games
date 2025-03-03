@@ -21,8 +21,15 @@
     "baseUrl": ".",
     "paths": {
       "plugins/*": ["../../plugins/*"],
-      "shared/*": ["../shared/*"]
-    }
+      "shared/*": ["../shared/*"],
+      "three": ["../../node_modules/three"],
+      "three/*": ["../../node_modules/three/*"]
+    },
+    "typeRoots": [
+      "../../node_modules/@types",
+      "./node_modules/@types",
+      "../../node_modules/three/src/Three.d.ts"
+    ]
   },
   "include": [
     "next-env.d.ts",
