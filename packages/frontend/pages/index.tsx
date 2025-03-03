@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 import PiWalletModal from 'components/PiWalletModal';
@@ -13,6 +13,20 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (!loggedIn) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [loggedIn]);
 
   const handleLogin = () => {
     setLoggedIn(true);
