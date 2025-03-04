@@ -12,8 +12,8 @@ const PiSprite: React.FC<PiSpriteProps> = ({ scale }) => {
   const { viewport } = useThree();
   const texture = useLoader(THREE.TextureLoader, '/pi-symbol2.png');
 
-  // Random speed for each coin (between 100 and 200 units per second)
-  const speed = useRef(Math.random() * 100 + 100);
+  // Random speed for each coin (between 300 and 500 units per second)
+  const speed = useRef(Math.random() * 200 + 300);
 
   // Function to reset the coin's position to far away
   const resetPosition = () => {
@@ -21,9 +21,10 @@ const PiSprite: React.FC<PiSpriteProps> = ({ scale }) => {
       spriteRef.current.position.set(
         (Math.random() - 0.5) * viewport.width * 10, // Random x
         (Math.random() - 0.5) * viewport.height * 10, // Random y
-        -900 // Always reset to far end
+        -2000 // Spawn further away from camera
       );
-      speed.current = Math.random() * 100 + 100; // Assign a new random speed
+      // Optionally adjust the speed range as needed
+      speed.current = Math.random() * 200 + 300;
     }
   };
 
@@ -31,8 +32,8 @@ const PiSprite: React.FC<PiSpriteProps> = ({ scale }) => {
   useEffect(() => {
     if (spriteRef.current) {
       const timeOffset = Math.random() * 10; // Simulate up to 10 seconds of movement
-      let initialZ = -900 + speed.current * timeOffset;
-      if (initialZ > 100) initialZ = -900; // Ensure it doesn’t start beyond the camera
+      let initialZ = -2000 + speed.current * timeOffset;
+      if (initialZ > 100) initialZ = -2000; // Ensure it doesn’t start beyond the camera
       spriteRef.current.position.set(
         (Math.random() - 0.5) * viewport.width * 10, // Random x
         (Math.random() - 0.5) * viewport.height * 10, // Random y

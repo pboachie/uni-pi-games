@@ -1,61 +1,107 @@
 // packages/frontend/components/InfiniteSpace.tsx
-import { useRef, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const numStars = 1000;
+const numStars = 2000; // Increase number of stars for visibility
 
 const InfiniteSpace: React.FC = () => {
   const starsRef = useRef<THREE.Points>(null!);
   const { viewport } = useThree();
 
-  // Initialize star positions
+  // Generate star positions
   const positions = useMemo(() => {
     const pos = new Float32Array(numStars * 3);
     for (let i = 0; i < numStars; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 10;     // x: wide spread
-      pos[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 10; // y: wide spread
-      pos[i * 3 + 2] = -Math.random() * 900;                         // z: between -900 and 0
+      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 15;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 10;
+      pos[i * 3 + 2] = -Math.random() * 1000;
     }
     return pos;
   }, [viewport]);
 
-  // Animate stars
+  // Star sizes for better visibility
+  const sizes = useMemo(() => {
+    const data = new Float32Array(numStars);
+    for (let i = 0; i < numStars; i++) {
+      data[i] = Math.random() * 4 + 2;
+    }
+    return data;
+  }, []);
+
+  // Custom shader for blurred stars
+  const starMaterial = useMemo(() => {
+    // Vertex shader - passes size and position to fragment shader
+    const vertexShader = `
+      attribute float size;
+      varying vec3 vColor;
+      void main() {
+        vColor = vec3(1.0, 1.0, 1.0); // White stars
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (300.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `;
+
+    // Fragment shader - creates a soft circular gradient for each point
+    const fragmentShader = `
+      varying vec3 vColor;
+      void main() {
+        // Calculate distance from center of point
+        float r = 0.0;
+        vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+        r = dot(cxy, cxy);
+
+        // Softer falloff for a blurry effect
+        float alpha = 1.0 - smoothstep(0.1, 1.0, r);
+        gl_FragColor = vec4(vColor, alpha * 0.8); // Adjust opacity here
+      }
+    `;
+
+    return new THREE.ShaderMaterial({
+      uniforms: {},
+      vertexShader,
+      fragmentShader,
+      blending: THREE.AdditiveBlending,
+      depthWrite: true,
+      transparent: true,
+    });
+  }, []);
+
   useFrame((_, delta) => {
     if (!starsRef.current) return;
 
-    const geometry = starsRef.current.geometry as THREE.BufferGeometry;
-    const positionsArray = geometry.attributes.position.array as Float32Array;
+    const posAttr = starsRef.current.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const posArray = posAttr.array as Float32Array;
 
     for (let i = 0; i < numStars; i++) {
-      positionsArray[i * 3 + 2] += delta * 200; // Move towards camera at 200 units/sec
-      if (positionsArray[i * 3 + 2] > 100) {    // When past camera (z=100)
-        positionsArray[i * 3 + 2] = -900;       // Reset to far distance
+      const i3 = i * 3;
+      posArray[i3 + 2] += delta * 75; // Move stars toward camera
+      if (posArray[i3 + 2] > 200) {
+        posArray[i3 + 2] = -1000;
       }
     }
-    geometry.attributes.position.needsUpdate = true;
+    posAttr.needsUpdate = true;
   });
 
   return (
     <points ref={starsRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          array={positions}
-          itemSize={3}
-          count={numStars}
-          args={[positions, 3]}
-        />
+        <bufferAttribute attach="attributes-position" count={numStars} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-size" count={numStars} array={sizes} itemSize={1} args={[positions, 3]}/>
       </bufferGeometry>
-      <pointsMaterial
-        color="#ffffff"
-        size={5}
+      <primitive object={starMaterial} attach="material" />
+      {/* <pointsMaterial
+        size={2}
+        color="#FFFFFF"
         sizeAttenuation={true}
-        transparent
+        transparent={true}
         opacity={0.8}
-      />
+        depthWrite={false}
+      /> */}
     </points>
   );
 };
 
 export default InfiniteSpace;
+
