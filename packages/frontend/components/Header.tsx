@@ -10,7 +10,7 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
   return (
     <header className="relative z-10 flex justify-between items-center p-4 bg-white shadow">
       <button onClick={() => setIsSidebarOpen(true)} className="text-2xl">☰</button>
-      <div className="text-2xl font-bold">Uni Pi Games</div>
+      <div className="text-2xl font-bold"><span className="text-red-500">UNI PI</span> GAMES</div>
       <Menu as="div" className="relative">
         <Menu.Button>
           <img src="/profile-icon.png" alt="User" className="w-8 h-8 rounded-full" />
