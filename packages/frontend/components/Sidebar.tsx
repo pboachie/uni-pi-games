@@ -8,25 +8,29 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, availableGames }) => {
+  if (!isOpen) return null;
+
   return (
-    <div
-      className={`fixed top-0 left-0 h-full w-64 bg-white shadow transform transition-transform duration-300 z-50 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
-    >
-      <div className="p-4">
-        <h2 className="text-2xl font-bold">Menu</h2>
+    <div className="fixed inset-0 z-30 flex">
+      {/* Backdrop: clicking here will close the sidebar */}
+      <div
+        className="fixed inset-0 bg-black opacity-50"
+        onClick={onClose}
+      />
+      {/* Sidebar content */}
+      <div className="relative z-40 w-64 bg-white p-4">
+        <h2 className="text-2xl font-bold" onClick={onClose}>Menu</h2>
         <ul className="mt-4 space-y-3">
           {availableGames.map((game) => (
             <li key={game}>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-200 rounded capitalize">
+              <button onClick={onClose} className="w-full text-left py-2 px-3 hover:bg-gray-200 rounded capitalize">
                 {game.replace(/-/g, ' ')}
               </button>
             </li>
           ))}
           {['Withdraw', 'Settings', 'Sign Out'].map((item) => (
             <li key={item}>
-              <button className="w-full text-left py-2 px-3 hover:bg-gray-200 rounded">
+              <button onClick={onClose} className="w-full text-left py-2 px-3 hover:bg-gray-200 rounded">
                 {item}
               </button>
             </li>
