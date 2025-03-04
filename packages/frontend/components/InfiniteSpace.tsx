@@ -1,11 +1,15 @@
 // packages/frontend/components/InfiniteSpace.tsx
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const numStars = 2000; // Increase number of stars for visibility
+interface InfiniteSpaceProps {
+  speed?: number;
+}
 
-const InfiniteSpace: React.FC = () => {
+const numStars = 2000;
+
+const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
   const starsRef = useRef<THREE.Points>(null!);
   const { viewport } = useThree();
 
@@ -71,37 +75,27 @@ const InfiniteSpace: React.FC = () => {
   useFrame((_, delta) => {
     if (!starsRef.current) return;
 
-    const posAttr = starsRef.current.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const posArray = posAttr.array as Float32Array;
+    const geometry = starsRef.current.geometry as THREE.BufferGeometry;
+    const positionsArray = geometry.attributes.position.array as Float32Array;
 
     for (let i = 0; i < numStars; i++) {
-      const i3 = i * 3;
-      posArray[i3 + 2] += delta * 75; // Move stars toward camera
-      if (posArray[i3 + 2] > 200) {
-        posArray[i3 + 2] = -1000;
+      // Apply dynamic speed based on scroll/zoom
+      positionsArray[i * 3 + 2] += delta * 200 * speed;
+      if (positionsArray[i * 3 + 2] > 100) {
+        positionsArray[i * 3 + 2] = -900;
       }
     }
-    posAttr.needsUpdate = true;
+    geometry.attributes.position.needsUpdate = true;
   });
 
   return (
     <points ref={starsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={numStars} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-size" count={numStars} array={sizes} itemSize={1} args={[positions, 3]}/>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <primitive object={starMaterial} attach="material" />
-      {/* <pointsMaterial
-        size={2}
-        color="#FFFFFF"
-        sizeAttenuation={true}
-        transparent={true}
-        opacity={0.8}
-        depthWrite={false}
-      /> */}
     </points>
   );
 };
 
 export default InfiniteSpace;
-

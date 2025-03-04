@@ -4,7 +4,11 @@ import { Canvas } from '@react-three/fiber';
 import InfiniteSpace from './InfiniteSpace';
 import Coins from './Coins';
 
-const BackgroundAnimation: React.FC = () => {
+interface BackgroundAnimationProps {
+  spaceSpeed?: number;
+}
+
+const BackgroundAnimation: React.FC<BackgroundAnimationProps> = ({ spaceSpeed = 1 }) => {
   return (
     <Canvas
       gl={{ antialias: true }}
@@ -19,9 +23,9 @@ const BackgroundAnimation: React.FC = () => {
         background: '#000000' // Explicitly set background
       }}
     >
-      <InfiniteSpace />
+      <InfiniteSpace speed={spaceSpeed} />
       <ambientLight intensity={1} />
-      <Coins />
+      <Coins speed={spaceSpeed} />
     </Canvas>
   );
 };
