@@ -4,3 +4,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.meteorite-button {
+  /* Enhanced background with detailed craters and texture */
+  background:
+    /* Multiple craters of varying sizes and positions */
+    radial-gradient(circle at 20% 30%, #222 0%, #222 5%, transparent 5%),
+    radial-gradient(circle at 40% 50%, #333 0%, #333 7%, transparent 7%),
+    radial-gradient(circle at 60% 70%, #222 0%, #222 6%, transparent 6%),
+    radial-gradient(circle at 80% 40%, #333 0%, #333 8%, transparent 8%),
+    radial-gradient(circle at 30% 80%, #222 0%, #222 4%, transparent 4%),
+    radial-gradient(circle at 70% 20%, #333 0%, #333 5%, transparent 5%),
+    /* Subtle noise-like texture for a rocky surface */
+    repeating-linear-gradient(45deg, #555 0%, #555 2%, #444 2%, #444 4%),
+    /* Base gradient for depth and shading */
+    linear-gradient(to bottom right, #666, #444);
+
+  /* Jagged, irregular meteorite shape */
+  clip-path: polygon(
+    5% 15%, 15% 5%, 25% 10%, 35% 5%, 45% 10%, 55% 5%, 65% 10%, 75% 5%, 85% 10%, 95% 15%,
+    95% 50%, 90% 70%, 80% 80%, 70% 85%, 60% 80%, 50% 85%, 40% 80%, 30% 85%, 20% 80%, 10% 70%,
+    5% 50%
+  );
+
+  /* Text styling for visibility and realism */
+  color: #fff; /* White text for contrast */
+  text-shadow: 1px 1px 2px #000, 0 0 5px rgba(255, 255, 255, 0.3); /* Shadow and subtle glow */
+
+  /* Adjusted padding and sizing */
+  padding: 25px 50px; /* Increased to fit text within the irregular shape */
+  font-size: 1.5rem; /* Matches original size */
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: center; /* Centers text within the button */
+
+  /* Remove default border and ensure interactivity */
+  border: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+
+  /* Smooth transitions for interactivity */
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* Hover effect: slight scale and brightness */
+.meteorite-button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Focus styles for accessibility */
+.meteorite-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
