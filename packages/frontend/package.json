@@ -12,6 +12,7 @@
     "@react-three/fiber": "^9.0.4",
     "connect-redis": "^8.0.1",
     "express-session": "^1.18.1",
+    "framer-motion": "^12.4.10",
     "next": "^15.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
