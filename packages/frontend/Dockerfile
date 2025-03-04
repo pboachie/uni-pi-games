@@ -19,5 +19,5 @@ RUN yarn build
 # remove frontend source code
 RUN rm -rf /app/packages/backend
 
-EXPOSE 3000
-CMD ["yarn", "start"]
+EXPOSE 3001
+CMD ["yarn", "start", "-p", "3001"]
