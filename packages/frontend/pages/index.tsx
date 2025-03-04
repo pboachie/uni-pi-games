@@ -1,3 +1,4 @@
+// packages/frontend/pages/index.tsx
 import React, { useState, useEffect } from 'react';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
@@ -9,9 +10,9 @@ import { User } from 'shared/src/types';
 const availableGames = ['some-game'];
 
 export default function Home() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -36,24 +37,24 @@ export default function Home() {
   if (!loggedIn) {
     return (
       <div className="relative min-h-screen overflow-hidden bg-transparent">
-        {/* Background Animation with PI Coins */}
         <BackgroundAnimation />
-        {/* Logo at the Top with increased z-index and dynamic responsive title */}
         <div className="absolute top-0 left-0 right-0 flex justify-center pt-8 z-20">
-          <div className="text-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-wider">
-            UNI PI GAMES
+          <div className="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-wider">
+            <center>
+              WEL<span className="text-red-500">COME</span><br />
+              <span className="text-red-500">TO</span><br />
+              <span className="text-red-500">UNI PI </span>GAMES
+            </center>
           </div>
         </div>
-        {/* Login Button*/}
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="mt-[50vh] sm:mt-[50vh] md:mt-[50vh]">
-            <button
-              onClick={handleLogin}
-              className="z-10 bg-white text-orange-500 px-6 py-3 sm:px-10 sm:py-5 rounded-lg text-2xl sm:text-3xl font-sans font-bold hover:bg-gray-100 shadow-md"
-            >
-              Login with Pi
-            </button>
-          </div>
+        <div className="flex flex-col items-center justify-center h-screen mt-[20vh]">
+          <button
+            disabled={!loggedIn}
+            onClick={handleLogin}
+            className="meteorite-button"
+          >
+            Login with Pi
+          </button>
         </div>
       </div>
     );
@@ -63,7 +64,7 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden">
       <BackgroundAnimation />
       <Header setIsSidebarOpen={setIsSidebarOpen} />
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} availableGames={availableGames}/>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} availableGames={availableGames} />
       <PiWalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} />
       <main className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
         {availableGames.map((game) => (
