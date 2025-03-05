@@ -6,6 +6,7 @@ export const cfg = {
   },
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   port: process.env.PORT || 5000,
+  redisPrefix: process.env.REDIS_PREFIX || 'unipi:',
 };
 
 export const prod = process.env.NODE_ENV === 'production';

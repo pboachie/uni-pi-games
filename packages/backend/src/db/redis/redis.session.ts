@@ -4,7 +4,10 @@ import session from 'express-session';
 import { rdc } from '../../db/redis/redis.db';
 import { cfg, prod } from '../../util/env';
 
-const redisStore = new RedisStore({ client: rdc });
+const redisStore = new RedisStore({
+  client: rdc,
+  prefix: cfg.redisPrefix
+});
 
 export const express_session = session({
     store: redisStore,
@@ -15,6 +18,7 @@ export const express_session = session({
     },
     name: cfg.session.name,
     secret: cfg.session.secret,
-    saveUninitialized: false, resave: false,
+    saveUninitialized: false,
+    resave: false,
 });
 
