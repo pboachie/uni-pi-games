@@ -8,10 +8,12 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "connect-redis": "^8.0.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "ioredis": "^5.5.0",
     "next-transpile-modules": "^10.0.1",
+    "redis": "^4.7.0",
     "shared": "file:../../packages/shared"
   },
   "devDependencies": {

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Database services
   postgres:
@@ -11,25 +13,40 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./packages/backend/init-postgres.sh:/docker-entrypoint-initdb.d/init-postgres.sh:ro
+    networks:
+      - unipi-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U uniPiAdmin -d unipi"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   redis:
     image: redis:latest
+    command: ["redis-server", "--appendonly", "yes"] # Enable AOF persistence for better reliability
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - unipi-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   # Application services
   backend:
@@ -44,14 +61,28 @@ services:
       redis:
         condition: service_healthy
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgres://uniPiAdmin:Esiakpene10!@postgres:5432/unipi
       REDIS_URL: redis://redis:6379
+      SESSION_STORE: redis
+      PORT: 5000
+    networks:
+      - unipi-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+      resources:
+        limits:
+          memory: 1G
 
   frontend:
     build:
@@ -63,7 +94,22 @@ services:
       backend:
         condition: service_healthy
     environment:
+      NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://backend:5000
+    networks:
+      - unipi-network
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  unipi-network:
+    driver: bridge
 
 volumes:
   redis-data:
