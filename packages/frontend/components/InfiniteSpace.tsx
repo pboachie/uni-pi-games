@@ -53,7 +53,7 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
 
   // Custom shader for blurred stars
   const starMaterial = useMemo(() => {
-    const sizeMultiplier = isMobile ? 600 : 400;
+    const sizeMultiplier = isMobile ? 200 : 400;
 
     const vertexShader = `
       attribute float size;
