@@ -21,7 +21,7 @@ const MeteoriteButton: React.FC<MeteoriteButtonProps> = ({ disabled, onClick }) 
         setFetching(false);
         onClick();
       }, 2000);
-    }, 420);
+    }, 220);
   };
 
   return (
