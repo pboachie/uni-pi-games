@@ -1,5 +1,5 @@
 // packages/frontend/components/InfiniteSpace.tsx
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -12,14 +12,29 @@ const numStars = 2000;
 const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
   const starsRef = useRef<THREE.Points>(null!);
   const { viewport } = useThree();
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Generate star positions
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Calculate base movement speed (slower on mobile)
+  const baseSpeed = isMobile ? 100 : 200;
+
+  // Initialize star positions
   const positions = useMemo(() => {
     const pos = new Float32Array(numStars * 3);
     for (let i = 0; i < numStars; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 15;
+      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 10;
       pos[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 10;
-      pos[i * 3 + 2] = -Math.random() * 1000;
+      pos[i * 3 + 2] = -Math.random() * 900;
     }
     return pos;
   }, [viewport]);
@@ -27,38 +42,38 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
   // Star sizes for better visibility
   const sizes = useMemo(() => {
     const data = new Float32Array(numStars);
+    const baseSizeMin = isMobile ? 8 : 5;
+    const baseSizeMax = isMobile ? 14 : 8;
+
     for (let i = 0; i < numStars; i++) {
-      data[i] = Math.random() * 4 + 2;
+      data[i] = Math.random() * (baseSizeMax - baseSizeMin) + baseSizeMin;
     }
     return data;
-  }, []);
+  }, [isMobile]);
 
   // Custom shader for blurred stars
   const starMaterial = useMemo(() => {
-    // Vertex shader - passes size and position to fragment shader
+    const sizeMultiplier = isMobile ? 600 : 400;
+
     const vertexShader = `
       attribute float size;
       varying vec3 vColor;
       void main() {
-        vColor = vec3(1.0, 1.0, 1.0); // White stars
+        vColor = vec3(1.0, 1.0, 1.0);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size * (300.0 / -mvPosition.z);
+        gl_PointSize = size * (${sizeMultiplier.toFixed(1)} / -mvPosition.z);
         gl_Position = projectionMatrix * mvPosition;
       }
     `;
 
-    // Fragment shader - creates a soft circular gradient for each point
     const fragmentShader = `
       varying vec3 vColor;
       void main() {
-        // Calculate distance from center of point
         float r = 0.0;
         vec2 cxy = 2.0 * gl_PointCoord - 1.0;
         r = dot(cxy, cxy);
-
-        // Softer falloff for a blurry effect
         float alpha = 1.0 - smoothstep(0.1, 1.0, r);
-        gl_FragColor = vec4(vColor, alpha * 0.8); // Adjust opacity here
+        gl_FragColor = vec4(vColor, alpha * 0.9);
       }
     `;
 
@@ -67,10 +82,10 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
       vertexShader,
       fragmentShader,
       blending: THREE.AdditiveBlending,
-      depthWrite: true,
+      depthWrite: false,
       transparent: true,
     });
-  }, []);
+  }, [isMobile]);
 
   useFrame((_, delta) => {
     if (!starsRef.current) return;
@@ -79,8 +94,8 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
     const positionsArray = geometry.attributes.position.array as Float32Array;
 
     for (let i = 0; i < numStars; i++) {
-      // Apply dynamic speed based on scroll/zoom
-      positionsArray[i * 3 + 2] += delta * 200 * speed;
+      // Apply adjusted base speed and multiplier
+      positionsArray[i * 3 + 2] += delta * baseSpeed * speed;
       if (positionsArray[i * 3 + 2] > 100) {
         positionsArray[i * 3 + 2] = -900;
       }
@@ -92,6 +107,7 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
     <points ref={starsRef}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
       </bufferGeometry>
       <primitive object={starMaterial} attach="material" />
     </points>
