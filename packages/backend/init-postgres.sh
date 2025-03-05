@@ -16,3 +16,10 @@ if [ "$RESULT" -eq "0" ]; then
 else
   echo "Database $POSTGRES_DB already exists."
 fi
+
+psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
+  CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(255) PRIMARY KEY,
+    data JSONB NOT NULL
+  );
+EOSQL
