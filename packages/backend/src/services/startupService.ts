@@ -10,8 +10,7 @@ export async function waitForServices(maxAttempts = 10, interval = 2000) {
   while (attempts < maxAttempts) {
     try {
       // Check Redis
-      const result = await redis.ping();
-      if (result !== 'PONG') {
+      if (!redis.isOpen) {
           throw new Error('Redis not ready');
       }
 
