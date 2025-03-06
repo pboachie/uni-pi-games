@@ -1,17 +1,16 @@
 // packages/frontend/components/InfiniteSpace.tsx
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { useSpaceSpeed } from './SpaceSpeedContext';
 import * as THREE from 'three';
 
-interface InfiniteSpaceProps {
-  speed?: number;
-}
-
 const numStars = 2000;
+const zRange = 1000; // Range for star distribution along Z-axis
 
-const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
+const InfiniteSpace: React.FC = () => {
+  const { spaceSpeed } = useSpaceSpeed();
   const starsRef = useRef<THREE.Points>(null!);
-  const { viewport } = useThree();
+  const { viewport, camera } = useThree();
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile device
@@ -32,9 +31,9 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
   const positions = useMemo(() => {
     const pos = new Float32Array(numStars * 3);
     for (let i = 0; i < numStars; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 10;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 10;
-      pos[i * 3 + 2] = -Math.random() * 900;
+      pos[i * 3] = (Math.random() - 0.5) * viewport.width * 10;     // X
+      pos[i * 3 + 1] = (Math.random() - 0.5) * viewport.height * 10; // Y
+      pos[i * 3 + 2] = (Math.random() - 0.5) * zRange;              // Z (centered around 0)
     }
     return pos;
   }, [viewport]);
@@ -92,16 +91,45 @@ const InfiniteSpace: React.FC<InfiniteSpaceProps> = ({ speed = 1 }) => {
 
     const geometry = starsRef.current.geometry as THREE.BufferGeometry;
     const positionsArray = geometry.attributes.position.array as Float32Array;
+    const cameraZ = camera.position.z; // Get camera's Z-position
 
     for (let i = 0; i < numStars; i++) {
-      // Apply adjusted base speed and multiplier
-      positionsArray[i * 3 + 2] += delta * baseSpeed * speed;
-      if (positionsArray[i * 3 + 2] > 100) {
-        positionsArray[i * 3 + 2] = -900;
+      // Move stars based on speed
+      positionsArray[i * 3 + 2] += delta * baseSpeed * spaceSpeed;
+
+      // Calculate star's Z-position relative to camera
+      const relativeZ = positionsArray[i * 3 + 2] - cameraZ;
+
+      // Wrap stars within zRange around the camera
+      if (relativeZ > zRange / 2) {
+        positionsArray[i * 3 + 2] -= zRange;
+      } else if (relativeZ < -zRange / 2) {
+        positionsArray[i * 3 + 2] += zRange;
       }
     }
     geometry.attributes.position.needsUpdate = true;
   });
+
+
+  // useFrame((_, delta) => {
+  //   if (!starsRef.current) return;
+
+  //   const geometry = starsRef.current.geometry as THREE.BufferGeometry;
+  //   const positionsArray = geometry.attributes.position.array as Float32Array;
+  //   const cameraZ = camera.position.z;
+
+  //   for (let i = 0; i < numStars; i++) {
+  //     const relativeZ = positionsArray[i * 3 + 2] - cameraZ;
+  //     if (relativeZ > zRange / 2) {
+  //       positionsArray[i * 3 + 2] -= zRange;
+  //     } else if (relativeZ < -zRange / 2) {
+  //       positionsArray[i * 3 + 2] += zRange;
+  //     }
+  //   }
+  //   geometry.attributes.position.needsUpdate = true;
+  // });
+
+
 
   return (
     <points ref={starsRef}>
