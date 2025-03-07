@@ -1,4 +1,7 @@
 // packages/backend/src/index.ts
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
@@ -9,6 +12,19 @@ import healthRouter from './routes/health';
 import { getUserData } from './services/dataService';
 import { waitForServices } from './services/startupService';
 import { cfg, prod } from './util/env';
+
+// Debug: Log configuration if not in production
+// if (!prod) {
+//   console.log('Using configuration:', {
+//     // You can mask sensitive fields if required (e.g., session.secret)
+//     session: { ...cfg.session, secret: '***' },
+//     redisUrl: cfg.redisUrl,
+//     postgresUrl: cfg.postgresUrl,
+//     port: cfg.port,
+//     redisPrefix: cfg.redisPrefix,
+//     postgresPool: cfg.postgresPool,
+//   });
+// }
 
 const app = express();
 const PORT = cfg.port;

@@ -11,7 +11,7 @@ export const cfg = {
   postgresPool: {
     max: Number(process.env.PG_POOL_MAX) || 20, // Max connections in the pool
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MILLIS) || 30000, // Close idle connections after 30s
-    connectionTimeoutMillis: Number(process.env.PG_CONNECTION_TIMEOUT_MILLIS) || 2000, // Timeout for acquiring a connection
+    connectionTimeoutMillis: Number(process.env.PG_CONNECTION_TIMEOUT_MILLIS) || 5000, // Timeout for acquiring a connection
   },
 };
 
