@@ -24,3 +24,4 @@ pgPool.connect((err, client, release) => {
 });
 
 export default pgPool;
+
