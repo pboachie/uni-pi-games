@@ -2,11 +2,35 @@
 # //packages/backend/init-postgres.sh
 set -e
 
-# Wait for Postgres to be ready
+max_attempts=30
+sleep_time=3
+attempt=1
+
+# Wait for Postgres to be ready using increased timeout
 until pg_isready -U "$POSTGRES_USER" -h localhost -p 5432; do
-  echo "Waiting for Postgres..."
+  if [ $attempt -gt $max_attempts ]; then
+    echo "Postgres did not become ready in time. Exiting."
+    exit 1
+  fi
+  echo "Waiting for Postgres... (attempt $attempt/$max_attempts)"
+  sleep $sleep_time
+  attempt=$((attempt + 1))
+done
+
+# Wait for Postgres to accept connections
+echo "Waiting for Postgres to be available..."
+attempt=0
+max_attempts=30
+until pg_isready -h localhost -p 5432; do
+  attempt=$((attempt+1))
+  echo "localhost:5432 - no response (attempt $attempt/$max_attempts)"
+  if [ "$attempt" -ge "$max_attempts" ]; then
+      echo "Postgres did not become available in time."
+      exit 1
+  fi
   sleep 1
 done
+echo "Postgres is up - proceeding with initialization."
 
 # Check if the database exists. If not, create it.
 RESULT=$(psql -U "$POSTGRES_USER" -lqt | cut -d \| -f 1 | grep -w "$POSTGRES_DB" | wc -l)
@@ -14,10 +38,10 @@ if [ "$RESULT" -eq "0" ]; then
   echo "Database $POSTGRES_DB does not exist. Creating..."
   psql -U "$POSTGRES_USER" -c "CREATE DATABASE $POSTGRES_DB"
 else
-  echo "Database $POSTGRES_DB already exists."
+  echo "Database $POSTGRES_DB already exists. Running migrations..."
 fi
 
-# Create all necessary tables
+# Create basic tables (idempotent via IF NOT EXISTS)
 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
   -- Users table
   CREATE TABLE IF NOT EXISTS users (
@@ -57,4 +81,33 @@ psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
   );
 EOSQL
 
+echo "Basic tables checked/created successfully."
+
+# Run migration: alter users table to add timestamps if missing
+psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
+  -- Alter users table: add created_at and last_login if they don't exist
+  ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+EOSQL
+
+echo "Users table altered successfully (timestamps verified)."
+
+# Run migration: create permissions tables if missing
+psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
+  -- Create permissions table
+  CREATE TABLE IF NOT EXISTS permissions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+  );
+
+  -- Create user_permissions table
+  CREATE TABLE IF NOT EXISTS user_permissions (
+    user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+    permission_id INTEGER REFERENCES permissions(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, permission_id)
+  );
+EOSQL
+
+echo "Permissions tables checked/created successfully."
 echo "Database schema initialized successfully."
