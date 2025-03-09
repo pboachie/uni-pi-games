@@ -8,6 +8,7 @@ import { rdc } from '../db/redis/redis.db';
 interface JwtPayload {
   uid: string;          // User ID
   role: string;         // User role (e.g., "user", "admin")
+  scopes?: string[];    // User scopes (optional)
   iat?: number;         // Issued at (automatically added by jwt.sign)
   exp?: number;         // Expiration (automatically added by jwt.sign)
   iss?: string;         // Issuer (optional)

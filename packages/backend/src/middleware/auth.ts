@@ -16,7 +16,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       return;
     }
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret') as { uid: string };
+      const decoded = jwt.verify(token, cfg.session.secret || 'your-secret-here') as { uid: string };
       req.user = { uid: decoded.uid };
       next(); // Pass control to the next handler
     } catch (error) {
