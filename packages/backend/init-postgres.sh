@@ -3,11 +3,11 @@
 set -e
 
 max_attempts=30
-sleep_time=3
 attempt=1
+sleep_time=3
 
 # Wait for Postgres to be ready using increased timeout
-until pg_isready -U "$POSTGRES_USER" -h localhost -p 5432; do
+until pg_isready -U "$POSTGRES_USER" -p 5432; do
   if [ $attempt -gt $max_attempts ]; then
     echo "Postgres did not become ready in time. Exiting."
     exit 1
@@ -21,9 +21,9 @@ done
 echo "Waiting for Postgres to be available..."
 attempt=0
 max_attempts=30
-until pg_isready -h localhost -p 5432; do
+until pg_isready -p 5432; do
   attempt=$((attempt+1))
-  echo "localhost:5432 - no response (attempt $attempt/$max_attempts)"
+  echo "Port 5432 - no response (attempt $attempt/$max_attempts)"
   if [ "$attempt" -ge "$max_attempts" ]; then
       echo "Postgres did not become available in time."
       exit 1
