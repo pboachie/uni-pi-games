@@ -9,6 +9,7 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/winston": "^2.4.4",
     "connect-redis": "^8.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -19,7 +20,8 @@
     "pg": "^8.13.3",
     "pi-backend": "^0.1.3",
     "redis": "^4.7.0",
-    "shared": "file:../../packages/shared"
+    "shared": "file:../../packages/shared",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
