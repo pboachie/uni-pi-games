@@ -71,7 +71,7 @@ async function startServer() {
       }
     );
 
-    // Add user balance route (assuming getUserData returns balance)
+    // Add user balance route
     app.get(
       '/api/user-balance',
       authMiddleware,
@@ -94,7 +94,7 @@ async function startServer() {
       }
     );
 
-    app.use((err: any, req: express.Request, res: express.Response) => {
+    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
       logger.error(err.stack);
       res.status(500).json({ message: 'Something went wrong!' });
     });
