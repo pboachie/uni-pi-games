@@ -16,11 +16,12 @@ import { getUserData } from './services/dataService';
 import { waitForServices } from './services/startupService';
 import { cfg, prod } from './util/env';
 import { authMiddleware, AuthRequest } from './middleware/auth';
+import logger from './util/logger';
 
 const app = express();
 const PORT = cfg.port;
 
-redis.connect().catch(console.error);
+redis.connect().catch(logger.error);
 
 const redisStore = new RedisStore({
   client: rdc,
@@ -30,7 +31,7 @@ const redisStore = new RedisStore({
 async function startServer() {
   try {
     await waitForServices();
-    console.log('Services are ready, starting server...');
+    logger.info('Services are ready, starting server...');
 
     app.use(cors());
     app.use(express.json());
@@ -64,6 +65,7 @@ async function startServer() {
         } catch (err: unknown) {
           const errorMessage =
             err instanceof Error ? err.message : 'An unknown error occurred';
+          logger.error(errorMessage);
           res.status(500).json({ message: errorMessage });
         }
       }
@@ -84,31 +86,33 @@ async function startServer() {
           const userData = { balance: 100 }; // Placeholder
           res.json({ balance: userData.balance || 0 });
         } catch (err: unknown) {
-          const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+          const errorMessage =
+            err instanceof Error ? err.message : 'An unknown error occurred';
+          logger.error(errorMessage);
           res.status(500).json({ message: errorMessage });
         }
       }
     );
 
     app.use((err: any, req: express.Request, res: express.Response) => {
-      console.error(err.stack);
+      logger.error(err.stack);
       res.status(500).json({ message: 'Something went wrong!' });
     });
 
     process.on('SIGTERM', async () => {
-      console.log('SIGTERM signal received: closing HTTP server');
+      logger.info('SIGTERM signal received: closing HTTP server');
       await rdc.quit();
       await pgPool.end();
-      console.log('Redis and Postgres clients closed');
+      logger.info('Redis and Postgres clients closed');
       process.exit(0);
     });
 
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Health check available at http://localhost:${PORT}/health`);
+      logger.info(`Server is running on port ${PORT}`);
+      logger.info(`Health check available at http://localhost:${PORT}/health`);
     });
   } catch (err) {
-    console.error('Failed to start server:', err);
+    logger.error('Failed to start server:', err);
     process.exit(1);
   }
 }
