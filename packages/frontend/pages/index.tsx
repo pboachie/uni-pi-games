@@ -4,7 +4,6 @@ import Sidebar from 'components/Sidebar';
 import PiWalletModal from 'components/PiWalletModal';
 import GameLoader from 'components/GameLoader';
 import BackgroundAnimation from 'components/BackgroundAnimation';
-import MeteoriteButton from 'components/MeteoriteButton';
 import PiAuthentication from 'components/PiAuthentication';
 import { User } from 'shared/src/types';
 

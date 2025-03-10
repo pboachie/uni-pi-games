@@ -9,6 +9,10 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
       if (!Pi || typeof Pi.authenticate !== 'function') {
         throw new Error("Pi SDK not available or 'authenticate' method not found");
       }
+      if (!Pi.initialized) {
+        // set sandbox to true if development environment
+        await Pi.init({ version: "2.0", sandbox: process.env.NODE_ENV === 'development' });
+      }
       const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
       onAuthentication(await signInUser(authResult), authResult.user);
     } catch (err) {
@@ -23,7 +27,7 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
         localStorage.removeItem('@pi-lotto:access_token');
       }
       // Using backend URL as in #codebase (see #file:authRouter.ts)
-      const response = await axios.post('http://localhost:5001/signin', { authResult });
+      const response = await axios.post('http://localhost:5001/auth/signin', { authResult });
       if (response.status !== 200) return false;
       if (response.data.access_token) {
         localStorage.setItem('@pi-lotto:access_token', response.data.access_token);
@@ -39,7 +43,7 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
   const onIncompletePaymentFound = async (payment) => {
     try {
       const paymentId = payment.identifier;
-      const response = await axios.post('http://localhost:5001/incomplete_server_payment/' + paymentId, { payment });
+      const response = await axios.post('http://localhost:5001/auth/incomplete_server_payment/' + paymentId, { payment });
       if (response.status !== 200) {
         console.error('Incomplete payment error:', response.data.error);
         return;
@@ -63,8 +67,8 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
   return (
     <div className="pi-authentication">
       <div className="relative">
-          <MeteoriteButton onClick={handleAuthentication} disabled={isAuthenticated} isAuthenticated={isAuthenticated} />
-        </div>
+        <MeteoriteButton onClick={handleAuthentication} disabled={isAuthenticated} isAuthenticated={isAuthenticated} />
+      </div>
     </div>
   );
 }

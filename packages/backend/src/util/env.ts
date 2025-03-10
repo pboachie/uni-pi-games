@@ -14,6 +14,9 @@ interface Config {
     idleTimeoutMillis: number;
     connectionTimeoutMillis: number;
   };
+  piNetwork: {
+    baseURL: string;
+  };
 }
 
 export const cfg: Config = {
@@ -32,6 +35,9 @@ export const cfg: Config = {
     max: Number(process.env.PG_POOL_MAX) || 20,
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MILLIS) || 30000,
     connectionTimeoutMillis: Number(process.env.PG_CONNECTION_TIMEOUT_MILLIS) || 5000,
+  },
+  piNetwork: {
+    baseURL: process.env.PI_BASE_URL || 'https://api.minepi.com/v2',
   },
 };
 

@@ -59,3 +59,203 @@
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
 }
+
+/* Full-screen loading container */
+.loading-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+/* Centered, pulsing logo */
+.loading-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: url('../public/pi-symbol.png') center/contain no-repeat;
+  animation: pulse 2s infinite;
+}
+
+/* Header scaffold and animation */
+.loading-scaffold-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  border-bottom: 2px dashed #999;
+  animation: fadeOut 0.5s ease-in-out 0.5s forwards;
+}
+
+.loading-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #ccc;
+  transform: translateY(-100%);
+  animation: slideDown 0.5s ease-in-out forwards;
+}
+
+/* Sidebar scaffold and animation */
+.loading-scaffold-sidebar {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 200px;
+  height: calc(100% - 120px);
+  border-right: 2px dashed #999;
+  animation: fadeOut 0.5s ease-in-out 1s forwards;
+}
+
+.loading-sidebar {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 200px;
+  height: calc(100% - 120px);
+  background: #ddd;
+  transform: translateX(-100%);
+  animation: slideInLeft 0.5s ease-in-out 0.5s forwards;
+}
+
+/* Main content scaffold and animation */
+.loading-scaffold-main {
+  position: absolute;
+  top: 60px;
+  left: 200px;
+  width: calc(100% - 200px);
+  height: calc(100% - 120px);
+  border: 2px dashed #999;
+  animation: fadeOut 0.5s ease-in-out 1.5s forwards;
+}
+
+.loading-main {
+  position: absolute;
+  top: 60px;
+  left: 200px;
+  width: calc(100% - 200px);
+  height: calc(100% - 120px);
+  background: #eee;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out 1s forwards;
+}
+
+/* Footer scaffold and animation */
+.loading-scaffold-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  border-top: 2px dashed #999;
+  animation: fadeOut 0.5s ease-in-out 2s forwards;
+}
+
+.loading-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #ccc;
+  transform: translateY(100%);
+  animation: slideUp 0.5s ease-in-out 1.5s forwards;
+}
+
+/* Typing text with blinking cursor */
+.loading-text {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+  color: #333;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #333;
+  animation: typing 2s steps(20, end), blink 0.5s step-end infinite;
+}
+
+/* Keyframe animations */
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* Responsive styles */
