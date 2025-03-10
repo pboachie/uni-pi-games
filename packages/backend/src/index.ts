@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import { RedisStore } from 'connect-redis';
@@ -11,11 +11,9 @@ import { pgPool } from './db/postgres/postgres.db';
 import healthRouter from './routes/health';
 import piAuthRouter from './routes/authRouter';
 import piPaymentRouter from './routes/piPaymentRouter';
-import tokenRouter from './routes/tokenRouter';
-import { getUserData } from './services/dataService';
+import userRouter from './routes/userRouter';
 import { waitForServices } from './services/startupService';
 import { cfg, prod } from './util/env';
-import { authMiddleware, AuthRequest } from './middleware/auth';
 import logger from './util/logger';
 
 const app = express();
@@ -53,46 +51,7 @@ async function startServer() {
     app.use('/health', healthRouter);
     app.use('/auth', piAuthRouter);
     app.use('/incomplete_server_payment', piPaymentRouter);
-    app.use('/auth', tokenRouter);
-
-    // User data route
-    app.get(
-      '/user/:id',
-      async (req: Request<{ id: string }>, res: Response) => {
-        try {
-          const userData = await getUserData(req.params.id);
-          res.json(userData);
-        } catch (err: unknown) {
-          const errorMessage =
-            err instanceof Error ? err.message : 'An unknown error occurred';
-          logger.error(errorMessage);
-          res.status(500).json({ message: errorMessage });
-        }
-      }
-    );
-
-    // Add user balance route
-    app.get(
-      '/api/user-balance',
-      authMiddleware,
-      async (req: AuthRequest, res: Response): Promise<void> => {
-        try {
-          const userId = req.user?.uid;
-          if (!userId) {
-            res.status(400).json({ message: 'User ID not found' });
-            return;
-          }
-          // Replace with your actual user data retrieval logic
-          const userData = { balance: 100 }; // Placeholder
-          res.json({ balance: userData.balance || 0 });
-        } catch (err: unknown) {
-          const errorMessage =
-            err instanceof Error ? err.message : 'An unknown error occurred';
-          logger.error(errorMessage);
-          res.status(500).json({ message: errorMessage });
-        }
-      }
-    );
+    app.use('/api/users', userRouter);
 
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
       logger.error(err.stack);

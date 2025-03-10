@@ -11,26 +11,29 @@ interface User {
 }
 
 /**
- * Fetches a user by ID with caching
- * @param userId The user's ID
- * @returns User object or null if not found
+ * Fetches a user by ID with caching.
+ * Reads "name" and "balance" from the JSONB column "data".
  */
 export async function getUserById(userId: string): Promise<User | null> {
   const cacheKey = `user:${userId}`;
 
-  // Define the database fetch function
   const fetchFromDb = async (): Promise<User | null> => {
     try {
-      const query = 'SELECT id, name, balance FROM users WHERE id = $1';
+      const query = `
+        SELECT id,
+          data->>'name' as name,
+          (data->>'balance')::numeric as balance
+        FROM users
+        WHERE id = $1
+      `;
       const result = await pgPool.query(query, [userId]);
       return result.rows[0] || null;
     } catch (error) {
       console.error(`Database error fetching user ${userId}:`, error);
-      throw error; // Let the caller handle the error
+      throw error;
     }
   };
 
-  // Use getCachedData with the fetch function
   return getCachedData<User | null>(
     cacheKey,
     fetchFromDb,
@@ -39,23 +42,19 @@ export async function getUserById(userId: string): Promise<User | null> {
 }
 
 /**
- * Updates a user's balance and invalidates cache
- * @param userId The user's ID
- * @param newBalance The new balance to set
+ * Updates a user's balance stored inside the JSONB "data" column and invalidates cache.
  */
 export async function updateUserBalance(userId: string, newBalance: number): Promise<void> {
   const cacheKey = `user:${userId}`;
-
   try {
     logger.info(`Updating balance for user ${userId} to ${newBalance}`);
-
-    // Update the database
-    const query = 'UPDATE users SET balance = $1 WHERE id = $2';
+    const query = `
+      UPDATE users
+      SET data = jsonb_set(data, '{balance}', to_jsonb($1::numeric), true)
+      WHERE id = $2
+    `;
     await pgPool.query(query, [newBalance, userId]);
-
     logger.info(`Balance updated in database for user ${userId}`);
-
-    // Invalidate the cache
     await invalidateCache(cacheKey);
     logger.info(`Cache invalidated for user ${userId}`);
   } catch (error) {

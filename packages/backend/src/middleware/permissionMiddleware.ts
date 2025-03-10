@@ -19,7 +19,7 @@ export const permit = (requiredPermission: string) => {
     const permissions = await getUserPermissions(user.uid);
     if (permissions.includes(requiredPermission)) {
       logger.info(`Permission "${requiredPermission}" granted to user ${user.uid}`);
-      next();
+      return next();
     } else {
       logger.error(`Permission "${requiredPermission}" denied for user ${user.uid}`);
       res.status(403).json({ error: 'Forbidden: insufficient permissions' });

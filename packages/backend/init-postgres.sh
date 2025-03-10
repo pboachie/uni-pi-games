@@ -86,8 +86,6 @@ EOSQL
 
 echo "Basic tables checked/created successfully."
 
-# Removed separate ALTER TABLE block for users since the needed columns are now included in the CREATE TABLE statement.
-
 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
   -- Create permissions table with active flag and tracking columns
   CREATE TABLE IF NOT EXISTS permissions (
@@ -107,7 +105,15 @@ psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
     active SMALLINT NOT NULL DEFAULT 1,
     PRIMARY KEY (user_id, permission_id)
   );
+
+  -- Insert initial permissions
+  INSERT INTO permissions (name, active, created_by)
+  VALUES
+    ('create_game', 1, 'system'),
+    ('create_tournament', 1, 'system'),
+    ('admin_access', 1, 'system')
+  ON CONFLICT (name) DO NOTHING;
 EOSQL
 
-echo "Permissions tables checked/created successfully."
+echo "Permissions tables checked/created and initialized successfully."
 echo "Database schema initialized successfully."
