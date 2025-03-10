@@ -9,20 +9,20 @@ import logger from '../util/logger';
  * Example:
  *   app.get('/admin', permit('admin_access'), ...);
  */
-export const permit = (requiredPermission: string) => {
+
+export const permit = (permission: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as AuthRequest).user;
     if (!user) {
       logger.warn('User not authenticated.');
-      return res.status(401).json({ error: 'User not authenticated' });
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
     }
     const permissions = await getUserPermissions(user.uid);
-    if (permissions.includes(requiredPermission)) {
-      logger.info(`Permission "${requiredPermission}" granted to user ${user.uid}`);
+    if (permissions.includes(permission)) {
+      logger.info(`Permission "${permission}" granted to user ${user.uid}`);
       return next();
-    } else {
-      logger.error(`Permission "${requiredPermission}" denied for user ${user.uid}`);
-      res.status(403).json({ error: 'Forbidden: insufficient permissions' });
     }
+    res.status(403).json({ error: 'Forbidden: insufficient permissions' });
   };
 };

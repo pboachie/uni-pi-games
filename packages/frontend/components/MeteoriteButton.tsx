@@ -4,15 +4,16 @@ import ExplosionParticles from './ExplosionParticles';
 interface MeteoriteButtonProps {
   disabled: boolean;
   onClick: () => void;
+  isAuthenticated?: boolean;
 }
 
-const MeteoriteButton: React.FC<MeteoriteButtonProps> = ({ disabled, onClick }) => {
+const MeteoriteButton: React.FC<MeteoriteButtonProps> = ({ disabled, onClick, isAuthenticated }) => {
   const [showExplosion, setShowExplosion] = useState(false);
   const [fetching, setFetching] = useState(false);
 
   const handleClick = () => {
     setShowExplosion(true);
-    // After 600ms, hide explosion and show "Fetching data..."
+    // After 220ms, hide explosion and show "Fetching"
     setTimeout(() => {
       setShowExplosion(false);
       setFetching(true);
@@ -33,10 +34,10 @@ const MeteoriteButton: React.FC<MeteoriteButtonProps> = ({ disabled, onClick }) 
           onClick={handleClick}
           className="meteorite-button"
         >
-          Login with Pi
+          {isAuthenticated ? 'Authenticated' : 'Login with Pi Network'}
         </button>
       )}
-      {/* Render nothing when explosion is active */}
+      {/* Render explosion or fetching messages */}
       {showExplosion && <ExplosionParticles />}
       {fetching && (
         <div className="text-white text-xl font-bold">

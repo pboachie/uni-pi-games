@@ -1,4 +1,3 @@
-// packages/frontend/pages/index.tsx
 import React, { useState } from 'react';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
@@ -6,6 +5,7 @@ import PiWalletModal from 'components/PiWalletModal';
 import GameLoader from 'components/GameLoader';
 import BackgroundAnimation from 'components/BackgroundAnimation';
 import MeteoriteButton from 'components/MeteoriteButton';
+import PiAuthentication from 'components/PiAuthentication';
 import { User } from 'shared/src/types';
 
 const availableGames = ['some-game'];
@@ -16,9 +16,20 @@ export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const handleLogin = () => {
-    setLoggedIn(true);
-    setUser({ id: '1', username: 'PiUser' });
+  // Callback triggered once authentication completes
+  const handleAuthentication = (isAuth: boolean, userData: any) => {
+    if (isAuth && userData) {
+      setLoggedIn(true);
+      setUser({ id: userData.uid, username: userData.username || 'PiUser' });
+    } else {
+      setLoggedIn(false);
+      setUser(null);
+    }
+  };
+
+  const handleBalanceUpdate = (updatedBalance: number) => {
+    // Update state with new balance (if needed)
+    console.log('Updated Balance:', updatedBalance);
   };
 
   if (!loggedIn) {
@@ -37,9 +48,11 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-col items-center justify-center h-screen mt-[20vh]">
-          <div className="relative">
-            <MeteoriteButton disabled={false} onClick={handleLogin} />
-          </div>
+          <PiAuthentication
+            onAuthentication={handleAuthentication}
+            isAuthenticated={loggedIn}
+            onBalanceUpdate={handleBalanceUpdate}
+          />
         </div>
       </div>
     );
