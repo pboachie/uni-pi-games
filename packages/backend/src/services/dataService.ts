@@ -2,6 +2,7 @@
 import { pgPool } from '../db/postgres/postgres.db';
 import { redis } from '../db/redis/redis.db';
 import { promisify } from 'util';
+import logger from '../util/logger';
 
 const getAsync = promisify(redis.get).bind(redis);
 const setAsync = promisify(redis.set).bind(redis);
@@ -12,7 +13,7 @@ export async function getUserData(userId: string) {
   // Check Redis cache first
   const cachedData = await getAsync(cacheKey);
   if (cachedData) {
-    console.log('Cache hit for user:', userId);
+    logger.info(`Cache hit for user: ${userId}`);
     return JSON.parse(cachedData);
   }
 
@@ -22,12 +23,13 @@ export async function getUserData(userId: string) {
     const res = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
     const userData = res.rows[0];
     if (!userData) {
+      logger.error(`User not found: ${userId}`);
       throw new Error('User not found');
     }
 
     // Store in Redis with a TTL of 1 hour (3600 seconds)
     await setAsync(cacheKey, JSON.stringify(userData), 'EX', 3600);
-    console.log('Cache set for user:', userId);
+    logger.info(`Cache set for user: ${userId}`);
     return userData;
   } finally {
     client.release();
@@ -43,7 +45,7 @@ export async function updateUserData(userId: string, data: any) {
     await client.query('UPDATE users SET data = $1 WHERE id = $2', [data, userId]);
     // Invalidate or update Redis cache
     await redis.del(cacheKey);
-    console.log('Cache invalidated for user:', userId);
+    logger.info(`Cache invalidated for user: ${userId}`);
   } finally {
     client.release();
   }
