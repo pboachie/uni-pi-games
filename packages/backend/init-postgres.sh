@@ -43,10 +43,13 @@ fi
 
 # Create basic tables (idempotent via IF NOT EXISTS)
 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
-  -- Users table
+  -- Users table with consolidated tracking fields
   CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
-    data JSONB NOT NULL
+    data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    login_count INTEGER NOT NULL DEFAULT 0
   );
 
   -- Games table (e.g., for managing game pools or sessions)
@@ -83,28 +86,25 @@ EOSQL
 
 echo "Basic tables checked/created successfully."
 
-# Run migration: alter users table to add timestamps if missing
-psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
-  -- Alter users table: add created_at and last_login if they don't exist
-  ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-EOSQL
+# Removed separate ALTER TABLE block for users since the needed columns are now included in the CREATE TABLE statement.
 
-echo "Users table altered successfully (timestamps verified)."
-
-# Run migration: create permissions tables if missing
 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOSQL
-  -- Create permissions table
+  -- Create permissions table with active flag and tracking columns
   CREATE TABLE IF NOT EXISTS permissions (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL,
+    active SMALLINT NOT NULL DEFAULT 1,
+    created_by VARCHAR(255) DEFAULT 'system',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
-  -- Create user_permissions table
+  -- Create user_permissions table with assigned_by, assigned_at and active flag
   CREATE TABLE IF NOT EXISTS user_permissions (
     user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
     permission_id INTEGER REFERENCES permissions(id) ON DELETE CASCADE,
+    assigned_by VARCHAR(255) DEFAULT 'system',
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active SMALLINT NOT NULL DEFAULT 1,
     PRIMARY KEY (user_id, permission_id)
   );
 EOSQL
