@@ -1,18 +1,18 @@
+//packages/frontend/components/PiAuthentication.jsx
 import axios from 'axios';
 import MeteoriteButton from './MeteoriteButton';
 
 function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }) {
   const handleAuthentication = async () => {
     try {
-      const scopes = ['username', 'payments', 'wallet_address'];
       const Pi = window.Pi;
       if (!Pi || typeof Pi.authenticate !== 'function') {
-        throw new Error("Pi SDK not available or 'authenticate' method not found");
+        throw new Error("Pi SDK not properly initialized");
       }
       if (!Pi.initialized) {
-        // set sandbox to true if development environment
         await Pi.init({ version: "2.0", sandbox: process.env.NODE_ENV === 'development' });
       }
+      const scopes = ['username', 'payments', 'wallet_address'];
       const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
       onAuthentication(await signInUser(authResult), authResult.user);
     } catch (err) {
@@ -23,17 +23,13 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
 
   const signInUser = async (authResult) => {
     try {
-      if (localStorage.getItem('@pi-lotto:access_token')) {
-        localStorage.removeItem('@pi-lotto:access_token');
-      }
-      // Using backend URL as in #codebase (see #file:authRouter.ts)
-      const response = await axios.post('http://localhost:5001/auth/signin', { authResult });
-      if (response.status !== 200) return false;
-      if (response.data.access_token) {
-        localStorage.setItem('@pi-lotto:access_token', response.data.access_token);
-        return true;
-      }
-      return false;
+      const response = await axios.post(
+        'http://localhost:5001/auth/signin',
+        { authResult },
+        { withCredentials: true }
+      );
+      console.log('Sign-in response:', response.data);
+      return response.status === 200;
     } catch (error) {
       console.error('Sign-in error:', error);
       return false;
@@ -43,17 +39,21 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
   const onIncompletePaymentFound = async (payment) => {
     try {
       const paymentId = payment.identifier;
-      const response = await axios.post('http://localhost:5001/auth/incomplete_server_payment/' + paymentId, { payment });
+      // Send request with cookie for authentication
+      const response = await axios.post(
+        'http://localhost:5001/auth/incomplete_server_payment/' + paymentId,
+        { payment },
+        { withCredentials: true }
+      );
       if (response.status !== 200) {
         console.error('Incomplete payment error:', response.data.error);
         return;
       }
       console.log('Incomplete payment found:', response.data);
-      const balanceResponse = await axios.get('http://localhost:5001/api/user-balance', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('@pi-lotto:access_token')}`,
-        },
-      });
+      const balanceResponse = await axios.get(
+        'http://localhost:5001/api/user-balance',
+        { withCredentials: true }
+      );
       if (balanceResponse.status === 200) {
         onBalanceUpdate(balanceResponse.data.balance);
       } else {
@@ -67,7 +67,11 @@ function PiAuthentication({ onAuthentication, isAuthenticated, onBalanceUpdate }
   return (
     <div className="pi-authentication">
       <div className="relative">
-        <MeteoriteButton onClick={handleAuthentication} disabled={isAuthenticated} isAuthenticated={isAuthenticated} />
+        <MeteoriteButton
+          onClick={handleAuthentication}
+          disabled={isAuthenticated}
+          isAuthenticated={isAuthenticated}
+        />
       </div>
     </div>
   );
