@@ -1,4 +1,4 @@
-// src/routes/authRouter.ts
+//packages/backend/src/routes/authRouter.ts
 import express, { Request, Response, NextFunction } from 'express';
 import { pi } from '../services/piService'; // Pi Network SDK integration
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -13,7 +13,15 @@ authRouter.post(
   '/signin',
   asyncHandler(async (req: Request, res: Response) => {
     logger.debug('Received signin request');
-    const { piUserId, accessToken } = req.body;
+
+    const accessToken = req.body.authResult.accessToken;
+    const userPayload = req.body.authResult.user;
+    console.log(userPayload.uid);
+    if (!userPayload || !userPayload.uid) {
+      logger.warn('Missing user information in request body');
+      return res.status(400).json({ error: 'Missing user information' });
+    }
+    const piUserId = userPayload.uid;
     logger.debug(`Verifying user with piUserId: ${piUserId}`);
 
     // Verify user with Pi Network SDK
@@ -24,6 +32,7 @@ authRouter.post(
     }
 
     // Upsert user into DB to track created and last login times
+    console.log(user);
     logger.debug(`Upserting user: ${user.uid}`);
     await upsertUser(user);
 
@@ -33,7 +42,7 @@ authRouter.post(
       role: 'user',
       scopes: user.scopes || []
     });
-    logger.info(`User signed in successfully: ${user.uid}`);
+    logger.info(`User signed in successfully: ${user.uid} (${user.username})`);
     return res.status(200).json({ token });
   })
 );
