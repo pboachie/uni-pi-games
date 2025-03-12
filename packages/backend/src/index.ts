@@ -15,11 +15,10 @@ import userRouter from './routes/userRouter';
 import { waitForServices } from './services/startupService';
 import { cfg, prod } from './util/env';
 import logger from './util/logger';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = cfg.port;
-
-redis.connect().catch(logger.error);
 
 const redisStore = new RedisStore({
   client: rdc,
@@ -28,9 +27,11 @@ const redisStore = new RedisStore({
 
 async function startServer() {
   try {
+    await redis.connect().catch(logger.error);
     await waitForServices();
     logger.info('Services are ready, starting server...');
 
+    app.use(cookieParser());
     app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
