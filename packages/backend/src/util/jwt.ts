@@ -5,10 +5,10 @@ import { Request, Response, NextFunction } from 'express';
 import { randomBytes, generateKeyPairSync } from 'crypto';
 import { rdc } from '../db/redis/redis.db';
 
-// Generate an EC key pair using the P-256 curve (recommended for ES512)
+// Generate an EC key pair using the secp521r1 curve (recommended for ES512)
 // If environment variables are set, they will be used instead.
 const ecKeyPair = generateKeyPairSync('ec', {
-  namedCurve: 'P-512',
+  namedCurve: 'secp521r1',
   publicKeyEncoding: {
     type: 'spki',
     format: 'pem',
@@ -45,7 +45,7 @@ interface JwtPayload {
  */
 export function signToken(payload: JwtPayload): string {
   const options: jwt.SignOptions = {
-    expiresIn: Number(JWT_EXPIRATION),
+    expiresIn: JWT_EXPIRATION as any,
     algorithm: 'ES512',
     issuer: ISSUER,
     audience: AUDIENCE,

@@ -23,7 +23,7 @@ interface Config {
     publicKey?: string;
     issuer: string;
     audience: string;
-    expiration: string
+    expiration: string;
   };
 }
 
