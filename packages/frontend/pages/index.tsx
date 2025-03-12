@@ -1,3 +1,4 @@
+//packages/frontend/pages/index.tsx
 import React, { useState } from 'react';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
@@ -6,14 +7,23 @@ import GameLoader from 'components/GameLoader';
 import BackgroundAnimation from 'components/BackgroundAnimation';
 import PiAuthentication from 'components/PiAuthentication';
 import { User } from 'shared/src/types';
+import jwt from 'jsonwebtoken';
+import { GetServerSideProps } from 'next';
+import cookie from 'cookie';
+
+// Define props type to include initialUser
+type HomeProps = {
+  initialLoggedIn: boolean;
+  initialUser: User | null;
+};
 
 const availableGames = ['some-game'];
 
-export default function Home() {
-  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
+  const [loggedIn, setLoggedIn] = useState<boolean>(initialLoggedIn);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(initialUser);
 
   // Callback triggered once authentication completes
   const handleAuthentication = (isAuth: boolean, userData: any) => {
@@ -27,7 +37,6 @@ export default function Home() {
   };
 
   const handleBalanceUpdate = (updatedBalance: number) => {
-    // Update state with new balance (if needed)
     console.log('Updated Balance:', updatedBalance);
   };
 
@@ -81,3 +90,49 @@ export default function Home() {
     </div>
   );
 }
+
+interface JwtDecoded {
+  uid: string;
+  username?: string;
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const cookies = cookie.parse(context.req.headers.cookie || "");
+  const token = cookies.token;
+  console.log('Token:', token);
+  if (token) {
+    try {
+      console.log('Verifying JWT...');
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_PUBLIC_KEY || 'your-public-key-here',
+        { algorithms: ['ES256'] }
+      ) as JwtDecoded;
+      console.log('Decoded JWT:', decoded);
+      const user = {
+        id: decoded.uid,
+        username: decoded.username || 'PiUser',
+      };
+      console.log('User:', user);
+      return {
+        props: {
+          initialLoggedIn: true,
+          initialUser: user,
+        },
+      };
+    } catch (e) {
+      return {
+        props: {
+          initialLoggedIn: false,
+          initialUser: null,
+        },
+      };
+    }
+  }
+  return {
+    props: {
+      initialLoggedIn: false,
+      initialUser: null,
+    },
+  };
+};
