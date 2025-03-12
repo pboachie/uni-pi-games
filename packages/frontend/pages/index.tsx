@@ -106,7 +106,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       const decoded = jwt.verify(
         token,
         process.env.JWT_PUBLIC_KEY || 'your-public-key-here',
-        { algorithms: ['ES256'] }
+        { algorithms: ['ES512'] }
       ) as JwtDecoded;
       console.log('Decoded JWT:', decoded);
       const user = {
