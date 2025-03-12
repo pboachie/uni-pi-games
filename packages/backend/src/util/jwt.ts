@@ -126,7 +126,7 @@ export function generateRefreshToken(uid: string): string {
   const refreshPayload: { uid: string } = { uid };
   return jwt.sign(refreshPayload, JWT_PRIVATE_KEY, {
     algorithm: 'ES512',
-    expiresIn: '7d', // Longer-lived refresh token
+    expiresIn: '1d', // Longer-lived refresh token
   });
 }
 

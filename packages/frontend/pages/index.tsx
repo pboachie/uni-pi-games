@@ -1,15 +1,14 @@
 //packages/frontend/pages/index.tsx
-import React, { useState } from 'react';
-import Header from 'components/Header';
-import Sidebar from 'components/Sidebar';
-import PiWalletModal from 'components/PiWalletModal';
-import GameLoader from 'components/GameLoader';
-import BackgroundAnimation from 'components/BackgroundAnimation';
-import PiAuthentication from 'components/PiAuthentication';
-import { User } from 'shared/src/types';
-import jwt from 'jsonwebtoken';
-import { GetServerSideProps } from 'next';
-import cookie from 'cookie';
+import React, { useState } from "react";
+import Header from "components/Header";
+import Sidebar from "components/Sidebar";
+import PiWalletModal from "components/PiWalletModal";
+import GameLoader from "components/GameLoader";
+import BackgroundAnimation from "components/BackgroundAnimation";
+import PiAuthentication from "components/PiAuthentication";
+import { User } from "shared/src/types";
+import { GetServerSideProps } from "next";
+import { getAuthProps, JwtDecoded } from "lib/authProps";
 
 // Define props type to include initialUser
 type HomeProps = {
@@ -17,7 +16,7 @@ type HomeProps = {
   initialUser: User | null;
 };
 
-const availableGames = ['some-game'];
+const availableGames = ["some-game"];
 
 export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
   const [loggedIn, setLoggedIn] = useState<boolean>(initialLoggedIn);
@@ -29,7 +28,7 @@ export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
   const handleAuthentication = (isAuth: boolean, userData: any) => {
     if (isAuth && userData) {
       setLoggedIn(true);
-      setUser({ id: userData.uid, username: userData.username || 'PiUser' });
+      setUser({ id: userData.uid, username: userData.username || "PiUser" });
     } else {
       setLoggedIn(false);
       setUser(null);
@@ -37,7 +36,7 @@ export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
   };
 
   const handleBalanceUpdate = (updatedBalance: number) => {
-    console.log('Updated Balance:', updatedBalance);
+    console.log("Updated Balance:", updatedBalance);
   };
 
   if (!loggedIn) {
@@ -82,7 +81,9 @@ export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
       <main className="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
         {availableGames.map((game) => (
           <div key={game} className="p-4 border rounded-lg shadow-md bg-white">
-            <h2 className="text-xl mb-2 capitalize">{game.replace(/-/g, ' ')}</h2>
+            <h2 className="text-xl mb-2 capitalize">
+              {game.replace(/-/g, " ")}
+            </h2>
             <GameLoader gameName={game} />
           </div>
         ))}
@@ -91,48 +92,6 @@ export default function Home({ initialLoggedIn, initialUser }: HomeProps) {
   );
 }
 
-interface JwtDecoded {
-  uid: string;
-  username?: string;
-}
-
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const cookies = cookie.parse(context.req.headers.cookie || "");
-  const token = cookies.token;
-  console.log('Token:', token);
-  if (token) {
-    try {
-      console.log('Verifying JWT...');
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_PUBLIC_KEY || 'your-public-key-here',
-        { algorithms: ['ES512'] }
-      ) as JwtDecoded;
-      console.log('Decoded JWT:', decoded);
-      const user = {
-        id: decoded.uid,
-        username: decoded.username || 'PiUser',
-      };
-      console.log('User:', user);
-      return {
-        props: {
-          initialLoggedIn: true,
-          initialUser: user,
-        },
-      };
-    } catch (e) {
-      return {
-        props: {
-          initialLoggedIn: false,
-          initialUser: null,
-        },
-      };
-    }
-  }
-  return {
-    props: {
-      initialLoggedIn: false,
-      initialUser: null,
-    },
-  };
+  return { props: await getAuthProps(context) };
 };
