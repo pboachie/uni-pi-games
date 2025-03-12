@@ -7,22 +7,30 @@ import logger from '../util/logger';
 import { pgPool } from '../db/postgres/postgres.db';
 import { signToken, generateRefreshToken, verifyRefreshToken } from '../util/jwt';
 import { CookieOptions } from 'express';
+import { log } from 'console';
 
 const authRouter = express.Router();
 
+const isProd = process.env.NODE_ENV === 'production';
+// Set domain: in production allow sandbox.minepi.com; in development, use localhost (or omit as needed)
+const domain = isProd ? '.unipigames.com' : 'localhost';
+logger.debug(`Using domain: ${domain}`);
+logger.debug(`isProd: ${isProd}`);
 // Cookie options for access and refresh tokens
 const accessTokenCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: isProd ? false : true,
+  sameSite: 'none', // Allow cross‑site requests
   maxAge: 15 * 60 * 1000, // 15 minutes
+  domain,
 };
 
 const refreshTokenCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: isProd ? false : true,
+  sameSite: 'none',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  domain,
 };
 
 /**
@@ -33,7 +41,6 @@ authRouter.post(
   '/signin',
   asyncHandler(async (req: Request, res: Response) => {
     logger.debug('Received signin request');
-
     const { accessToken, user: userPayload } = req.body.authResult || {};
     if (!userPayload || !userPayload.uid || !accessToken) {
       logger.warn('Missing user information or access token in request body');
@@ -58,6 +65,7 @@ authRouter.post(
       uid: user.uid,
       role: 'user',
       scopes: user.scopes || [],
+      username: user.username,
     });
     const refreshToken = generateRefreshToken(user.uid);
 
