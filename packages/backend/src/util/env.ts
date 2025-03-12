@@ -1,4 +1,5 @@
 //packages/backend/src/util/env.ts
+
 interface Config {
   session: {
     age: number;
@@ -17,6 +18,13 @@ interface Config {
   piNetwork: {
     baseURL: string;
   };
+  jwt: {
+    privateKey?: string;
+    publicKey?: string;
+    issuer: string;
+    audience: string;
+    expiration: string
+  };
 }
 
 export const cfg: Config = {
@@ -27,8 +35,7 @@ export const cfg: Config = {
   },
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   postgresUrl:
-    process.env.DATABASE_URL ||
-    'postgres://uniPiAdmin:YourStrongPasswordHere@postgres:5432/unipi',
+  process.env.DATABASE_URL || 'postgres://uniPiAdmin:YourStrongPasswordHere@postgres:5432/unipi',
   port: process.env.PORT || 5000,
   redisPrefix: process.env.REDIS_PREFIX || 'unipi:',
   postgresPool: {
@@ -38,6 +45,13 @@ export const cfg: Config = {
   },
   piNetwork: {
     baseURL: process.env.PI_BASE_URL || 'https://api.minepi.com/v2',
+  },
+  jwt: {
+    privateKey: process.env.JWT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    publicKey: process.env.JWT_PUBLIC_KEY?.replace(/\\n/g, '\n'),
+    issuer: process.env.JWT_ISSUER || 'uni-pi-games-platform',
+    audience: process.env.JWT_AUDIENCE || 'uni-pi-users',
+    expiration: process.env.JWT_EXPIRES_IN || '15m',
   },
 };
 
