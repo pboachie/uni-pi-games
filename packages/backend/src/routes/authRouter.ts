@@ -29,7 +29,7 @@ const refreshTokenCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: isProd ? false : true,
   sameSite: 'none',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 1 * 24 * 60 * 60 * 1000, // 1 days
   domain,
 };
 
@@ -70,7 +70,7 @@ authRouter.post(
     const refreshToken = generateRefreshToken(user.uid);
 
     // Store refresh token in the database
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 1 days
     await pgPool.query(
       'INSERT INTO refresh_tokens (uid, token, expires_at) VALUES ($1, $2, $3)',
       [user.uid, refreshToken, expiresAt]
@@ -136,7 +136,7 @@ authRouter.post(
 
     // Update database: remove old refresh token, add new one
     await pgPool.query('DELETE FROM refresh_tokens WHERE token = $1', [refreshToken]);
-    const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const newExpiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 1 days
     await pgPool.query(
       'INSERT INTO refresh_tokens (uid, token, expires_at) VALUES ($1, $2, $3)',
       [uid, newRefreshToken, newExpiresAt]
