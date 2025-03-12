@@ -12,22 +12,31 @@ export default class RedisTransport extends Transport {
   }
 
   log(info: any, callback: () => void) {
-    setImmediate(() => {
-      this.emit('logged', info);
-    });
+    try {
+      if (!rdc.isOpen) {
+        return callback();
+      }
 
-    const logEntry = JSON.stringify({
-      level: info.level,
-      message: info.message,
-      timestamp: info.timestamp,
-    });
-
-    rdc.lPush(this.key, logEntry)
-      .then(() => rdc.lTrim(this.key, 0, this.maxLogs - 1))
-      .catch(err => {
-        console.error('Error storing log in Redis:', err);
+      setImmediate(() => {
+        this.emit('logged', info);
       });
 
-    callback();
+      const logEntry = JSON.stringify({
+        level: info.level,
+        message: info.message,
+        timestamp: info.timestamp,
+      });
+
+      rdc.lPush(this.key, logEntry)
+        .then(() => rdc.lTrim(this.key, 0, this.maxLogs - 1))
+        .catch(err => {
+          console.error('Error storing log in Redis:', err);
+        });
+
+      callback();
+    } catch (error) {
+      console.error("RedisTransport error:", error);
+      return callback();
+    }
   }
 }
