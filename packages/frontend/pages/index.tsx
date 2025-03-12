@@ -8,7 +8,7 @@ import BackgroundAnimation from "components/BackgroundAnimation";
 import PiAuthentication from "components/PiAuthentication";
 import { User } from "shared/src/types";
 import { GetServerSideProps } from "next";
-import { getAuthProps, JwtDecoded } from "lib/authProps";
+import { getAuthProps } from "lib/authProps";
 
 // Define props type to include initialUser
 type HomeProps = {
