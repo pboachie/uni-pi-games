@@ -1,8 +1,30 @@
 //packages/backend/src/util/jwt.ts
 import jwt from 'jsonwebtoken';
+import { cfg, prod } from '../util/env';
 import { Request, Response, NextFunction } from 'express';
-import { randomBytes } from 'crypto';
+import { randomBytes, generateKeyPairSync } from 'crypto';
 import { rdc } from '../db/redis/redis.db';
+
+// Generate an EC key pair using the P-256 curve (recommended for ES512)
+// If environment variables are set, they will be used instead.
+const ecKeyPair = generateKeyPairSync('ec', {
+  namedCurve: 'P-512',
+  publicKeyEncoding: {
+    type: 'spki',
+    format: 'pem',
+  },
+  privateKeyEncoding: {
+    type: 'pkcs8',
+    format: 'pem',
+  },
+});
+
+const JWT_PRIVATE_KEY: jwt.Secret = cfg.jwt.privateKey || ecKeyPair.privateKey;
+const JWT_PUBLIC_KEY: jwt.Secret = cfg.jwt.publicKey || ecKeyPair.publicKey;
+
+const JWT_EXPIRATION = cfg.jwt.expiration; // Short-lived tokens
+const ISSUER: string = cfg.jwt.issuer; // Unique issuer identifier
+const AUDIENCE: string = cfg.jwt.audience; // Audience identifier
 
 // Define the JWT payload interface
 interface JwtPayload {
@@ -13,27 +35,22 @@ interface JwtPayload {
   exp?: number;         // Expiration (automatically added by jwt.sign)
   iss?: string;         // Issuer (optional)
   aud?: string;         // Audience (optional)
+  username?: string;    // Username (optional)
 }
 
-// Configuration constants
-const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET || randomBytes(32).toString('hex'); // 256-bit random key if not provided
-const JWT_EXPIRATION = '15m' as const; // Short-lived tokens
-const ISSUER: string = 'uni-pi-games-platform'; // Unique issuer identifier
-const AUDIENCE: string = 'uni-pi-users'; // Audience identifier
-
 /**
- * Signs a JWT with the provided payload
+ * Signs a JWT with the provided payload using ES512.
  * @param payload The data to encode in the token
  * @returns Signed JWT string
  */
 export function signToken(payload: JwtPayload): string {
   const options: jwt.SignOptions = {
-    expiresIn: JWT_EXPIRATION,
-    algorithm: 'HS256',
+    expiresIn: Number(JWT_EXPIRATION),
+    algorithm: 'ES512',
     issuer: ISSUER,
     audience: AUDIENCE,
   };
-  return jwt.sign(payload, JWT_SECRET, options);
+  return jwt.sign(payload, JWT_PRIVATE_KEY, options);
 }
 
 /**
@@ -48,8 +65,8 @@ export async function verifyToken(token: string): Promise<JwtPayload | null> {
       console.warn('Attempt to use revoked token');
       return null;
     }
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ['HS256'],
+    const decoded = jwt.verify(token, JWT_PUBLIC_KEY, {
+      algorithms: ['ES512'],
       issuer: ISSUER,
       audience: AUDIENCE,
     }) as JwtPayload;
@@ -62,7 +79,7 @@ export async function verifyToken(token: string): Promise<JwtPayload | null> {
 }
 
 /**
- * Middleware to authenticate requests using JWT
+ * Middleware to authenticate requests using JWT.
  */
 export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const token: string | undefined = req.cookies?.token || req.headers.authorization?.split(' ')[1]; // Support cookies or Authorization header
@@ -101,25 +118,26 @@ export async function revokeToken(token: string): Promise<void> {
 }
 
 /**
- * Generates a refresh token
+ * Generates a refresh token using ES512.
  * @param uid User ID
  * @returns Refresh token string
  */
 export function generateRefreshToken(uid: string): string {
   const refreshPayload: { uid: string } = { uid };
-  return jwt.sign(refreshPayload, JWT_SECRET + '-refresh', { // Use a different secret for refresh tokens
+  return jwt.sign(refreshPayload, JWT_PRIVATE_KEY, {
+    algorithm: 'ES512',
     expiresIn: '7d', // Longer-lived refresh token
   });
 }
 
 /**
- * Verifies a refresh token
+ * Verifies a refresh token.
  * @param token Refresh token string
  * @returns User ID or null if invalid
  */
 export function verifyRefreshToken(token: string): string | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET + '-refresh') as { uid: string };
+    const decoded = jwt.verify(token, JWT_PUBLIC_KEY, { algorithms: ['ES512'] }) as { uid: string };
     return decoded.uid;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -127,46 +145,3 @@ export function verifyRefreshToken(token: string): string | null {
     return null;
   }
 }
-// Example usage in a route (pseudo-code)
-/*
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  // Authenticate user...
-  const user = { uid: 'user123', role: 'user' };
-  const accessToken = signToken(user);
-  const refreshToken = generateRefreshToken(user.uid);
-
-  // Set access token in HTTP-only, Secure cookie
-  res.cookie('token', accessToken, {
-    httpOnly: true,
-    secure: true, // Requires HTTPS
-    sameSite: 'strict', // Prevents CSRF
-    maxAge: 15 * 60 * 1000, // 15 minutes
-  });
-
-  res.json({ refreshToken });
-});
-
-app.post('/refresh', (req, res) => {
-  const { refreshToken } = req.body;
-  const uid = verifyRefreshToken(refreshToken);
-  if (!uid) {
-    return res.status(401).json({ error: 'Invalid refresh token' });
-  }
-  const user = { uid, role: 'user' }; // Fetch role from DB in real app
-  const newAccessToken = signToken(user);
-  res.cookie('token', newAccessToken, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 15 * 60 * 1000 });
-  res.json({ message: 'Token refreshed' });
-});
-
-app.post('/logout', (req, res) => {
-  const token = req.cookies.token;
-  if (token) revokeToken(token);
-  res.clearCookie('token');
-  res.json({ message: 'Logged out' });
-});
-
-app.get('/protected', authMiddleware, (req, res) => {
-  res.json({ message: 'Protected data', user: req.user });
-});
-*/
